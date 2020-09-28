@@ -1,0 +1,4800 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MetamergeConfig IDIversion="Created by TDI6.1.1 - 2007-02-07" created="Fri Mar 23 13:15:27 EDT 2012" createdBy="root" modified="Thu May 05 09:59:35 EDT 2016" modifiedBy="root" version="6.1.1">
+<Folder name="AssemblyLines">
+<AssemblyLine name="syncChanges">
+<Settings>
+<parameter name="ALPoolSettingsDialog">showALPoolSettings</parameter>
+<parameter name="automapattributes">false</parameter>
+<parameter name="createTombstones">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="includeGlobalPrologs">true</parameter>
+<parameter name="maxread"/>
+<parameter name="nullBehaviorDialog">showNullBehavior</parameter>
+</Settings>
+<Hooks>
+<Hook>
+<Name>onfailure</Name>
+<Script>cat("****** sync process stopped on Failure ******",1);</Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>onsuccess</Name>
+<Script>cat("****** sync process completed  ******",1);</Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>prolog</Name>
+<Script><![CDATA[cat(" ",1);
+cat("****** sync process started ******",1);]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>startcycle</Name>
+<Script/>
+<Enabled>false</Enabled>
+</Hook>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<LogConfig>
+<Logger>
+<parameter name="IDIFileRoller.File">logs/syncChanges_error.log.1</parameter>
+<parameter name="IDIFileRoller.RollCount">1000</parameter>
+<parameter name="Pattern.ConversionPattern">%d{ISO8601} %-5p [%c] - %m%n</parameter>
+<parameter name="com.ibm.di.log.appender">IDIFileRoller</parameter>
+<parameter name="com.ibm.di.log.layout">Simple</parameter>
+<parameter name="com.ibm.di.log.level">ERROR</parameter>
+<parameter name="enabled">false</parameter>
+</Logger>
+<Logger>
+<parameter name="File.Append">true</parameter>
+<parameter name="File.File">logs/syncChanges.log</parameter>
+<parameter name="Pattern.ConversionPattern">%d{ISO8601} %-5p [%c] - %m%n</parameter>
+<parameter name="com.ibm.di.log.appender">File</parameter>
+<parameter name="com.ibm.di.log.layout">Pattern</parameter>
+<parameter name="com.ibm.di.log.level">WARN</parameter>
+<parameter name="enabled">true</parameter>
+</Logger>
+<Logger>
+<parameter name="Pattern.ConversionPattern">%d{ISO8601} %-5p [%c] - %m%n</parameter>
+<parameter name="com.ibm.di.log.appender">Console</parameter>
+<parameter name="com.ibm.di.log.layout">Pattern</parameter>
+<parameter name="com.ibm.di.log.level">INFO</parameter>
+<parameter name="enabled">false</parameter>
+</Logger>
+</LogConfig>
+<ContainerEF name="EntryFeedContainer">
+<Connector name="readClogZVM1">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM1Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+<Hook>
+<Name>after_getnext</Name>
+<Script><![CDATA[/*	Test racfid against list of excluded users loaded into 
+	Java HashSet object in Prolog. If matched do not process.
+*/
+racfid = system.getX400Attribute( conn.getString("targetdn"), "," , "racfid");
+
+cat("\n",2);
+cat( "read_zVMclog.AfterGetNext: Processing change number " 
+		+ conn.getString("changenumber") +", user " + racfid,2);
+
+initiator = system.getX400Attribute( conn.getString("ibm-changeinitiatorsname"), "," , "racfid");
+cat("Read_zVMclog.AfterGetNext: ibm-changeinitiatorsname is: "+initiator,2);
+
+if (initiator=="itdi" || initiator=="ITDI") {
+cat("Read_zVMclog.AfterGetNext: Change made by itdi ignored",2);
+cat("Read_zVMclog.AfterGetNext: Processing Complete for change number " 
+		+ conn.getString("changenumber"),2);
+} 
+
+if (initiator=="ciswork" || initiator=="CISWORK") {
+cat("Read_zVMclog.AfterGetNext: Change made by ciswork ignored",2);
+cat("Read_zVMclog.AfterGetNext: Processing Complete for change number " 
+		+ conn.getString("changenumber"),2);
+}
+
+]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogZVM2">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM2Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogZVM3">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM3Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogZVM4">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM4Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogZVM5">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM5Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogZVM6">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM6Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogZVM7">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM7Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogZVM8">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM8Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogzVM9">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM9Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="readClogzVM10">
+<InheritFrom>/Connectors/logic_readClogZVM</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM10Clog</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+</ContainerEF>
+<ContainerDF name="DataFlowContainer">
+<Branch name="ifciswork">
+<Conditions>
+<BranchCondition>
+<LeftHand>initiatorname</LeftHand>
+<Operator>equals</Operator>
+<RightHand>ciswork</RightHand>
+<Negate>true</Negate>
+<CaseSensitive>false</CaseSensitive>
+</BranchCondition>
+</Conditions>
+<MatchAny>false</MatchAny>
+<Enabled>true</Enabled>
+<Type>0</Type>
+</Branch>
+<Branch name="ifNOTitdi">
+<Branch name="ifNOTdelete">
+<Connector name="lookupInZVM1">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM1LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookupInZVM2">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM2LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookuplnZVM3">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM3LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookupInZVM4">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM4LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookupInZVM5">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM5LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookupInZVM6">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM6LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookupInZVM7">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM7LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookupInZVM8">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM8LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookupInZVM9">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM9LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="lookupInZVM10">
+<InheritFrom>/Connectors/logic_lookupInZVM</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM10LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<ALMap name="mapAttributes">
+<AttributeMap name="Input">
+<AttributeMapItem>
+<Name>racfattributes</Name>
+<Type>advanced</Type>
+<Script><![CDATA[racfattributes = work.getAttribute("racfattributes");
+if (racfattributes == null) 
+{
+    cat("mapAttributes: racfattributes is null",2); 
+    racfattributes=work.newAttribute("racfattributes");
+}
+racfattributes.removeValue("PASSWORD");
+if (racfattributes.hasValue("REVOKED"))
+{ 
+   racfattributes.removeValue("REVOKED");
+   racfattributes.addValue("REVOKE");
+   cat("Changenumber '"+work.getString("changenumber")+"' from system '"+work.getString("systemoriginator")+"' additional details: REVOKED",1);   
+}
+else
+{ 
+   cat("mapAttributes: value targetdn is: "+work.getString("$dn"),2);
+   profiletype = system.getX400Attribute( work.getString("$dn"), "," , "PROFILETYPE");
+   cat("mapAttributes: value profiletype is: "+profiletype,2); 
+   if (((profiletype == "USER") || (profiletype == "CONNECT")) && (work.getString("changetype") != "add"))     
+   {
+      racfattributes.addValue("RESUME");
+      cat("Changenumber '"+work.getString("changenumber")+"' from system '"+work.getString("systemoriginator")+"' additional details: RESUME",1);
+   }
+}
+cat("mapAttributes: value of password Expired: "+work.getProperty("passwordExpired"),2);
+if (work.getProperty("passwordExpired") == "true") 
+{
+   cat("mapAttributes: the password is not NOexpired",2);
+}
+else 
+{
+   cat("mapAttributes: the password is NOT Expired",2);
+   racfattributes.addValue("NOEXPIRED");
+}
+cat("mapAttributes: racf attrib are: "+racfattributes,2); 
+ret.value = racfattributes;
+]]></Script>
+<Simple>racfattributes</Simple>
+</AttributeMapItem>
+</AttributeMap>
+</ALMap>
+<Connector name="updSdbmZVM1">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM1LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM2">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM2LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM3">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM3LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM4">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM4LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM5">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM5LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM7">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM7LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM6">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM6LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM8">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM8LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM9">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM9LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="updSdbmZVM10">
+<InheritFrom>/Connectors/logic_updSdbmZVM</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM10LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Conditions>
+<BranchCondition>
+<LeftHand>changetype</LeftHand>
+<Operator>equals</Operator>
+<RightHand>delete</RightHand>
+<Negate>true</Negate>
+<CaseSensitive>false</CaseSensitive>
+</BranchCondition>
+</Conditions>
+<MatchAny>false</MatchAny>
+<Enabled>true</Enabled>
+<Type>0</Type>
+</Branch>
+<Branch name="elsedelete">
+<Connector name="delSdbmZVM1">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM1LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM2">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM2LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM3">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM3LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM4">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM4LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM5">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM5LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM6">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM6LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM7">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM7LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM8">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM8LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM9">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM9LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="delSdbmZVM10">
+<InheritFrom>/Connectors/logic_delSdbmZVM</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>/Connectors/zconfig_zVM10LDAP</InheritFrom>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Conditions/>
+<MatchAny>false</MatchAny>
+<Enabled>true</Enabled>
+<Type>2</Type>
+</Branch>
+<Conditions>
+<BranchCondition>
+<LeftHand>initiatorname</LeftHand>
+<Operator>equals</Operator>
+<RightHand>itdi</RightHand>
+<Negate>true</Negate>
+<CaseSensitive>false</CaseSensitive>
+</BranchCondition>
+</Conditions>
+<MatchAny>false</MatchAny>
+<Enabled>true</Enabled>
+<Type>0</Type>
+</Branch>
+</ContainerDF>
+<ThreadOptions/>
+<Operations/>
+<InitParams>
+<Schema name="AssemblyLineInitParams"/>
+</InitParams>
+</AssemblyLine>
+</Folder>
+<Folder name="Connectors">
+<Connector name="zconfig_zVM1Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM1</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:1</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">$ITDI111</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlx1:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">262865</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changes</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>racfPassword</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+<Hook>
+<Name>before_initialize</Name>
+<Script><![CDATA[thisConnector.connector.setParam("jndiExtraProviderParams",
+"com.sun.jndi.ldap.connect.timeout:60000");]]></Script>
+<Enabled>false</Enabled>
+</Hook>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM1LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:1</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">$ITDI111</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlx1:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM2LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:2</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">$$itdi05</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxw5:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM2Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM2</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:2</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">$$itdi05</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxw5:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">37375</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changes</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>racfPassword</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="logic_readClogZVM">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey"/>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword"/>
+<parameter name="ldapSearchBase"/>
+<parameter name="ldapUrl"/>
+<parameter name="ldapUseSSL">false</parameter>
+<parameter name="ldapUsername"/>
+<parameter name="nsChangenumber"/>
+<parameter name="nsSleepInterval"/>
+<parameter name="nsTimeout"/>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<AttributeMapItem>
+<Name>$dn</Name>
+<Type>simple</Type>
+<Simple>$dn</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>changenumber</Name>
+<Type>simple</Type>
+<Simple>changenumber</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>changetype</Name>
+<Type>simple</Type>
+<Simple>changetype</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Type>simple</Type>
+<Simple>ibm-changeinitiatorsname</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>initiatorname</Name>
+<Type>advanced</Type>
+<Script>ret.value = system.getX400Attribute( conn.getString("ibm-changeinitiatorsname"), "," , "racfid");</Script>
+<Simple>initiatorname</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfPassword</Name>
+<Type>simple</Type>
+<Simple>racfPassword</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>systemoriginator</Name>
+<Type>advanced</Type>
+<Script><![CDATA[params = thisConnector.getConnectorParam("jndiExtraProviderParams");
+//cat("Read_zVMclog.systemoriginator: content of jndiExtraProviderParams is: "+params,2);
+position = params.indexOf("connectornumber:")+16;
+//cat("Read_zVMclog.systemoriginator: position is : "+position,2);
+connectornumber = params.substring(position,position+2);
+//cat("Read_zVMclog.systemoriginator: content of connectornumber is: "+connectornumber,2);
+cat("Changenumber '"+conn.getString("changenumber")+"' from system '"+connectornumber+"' found",1);
+cat("Changenumber '"+conn.getString("changenumber")+"' from system '"+connectornumber+"' details: Changeinitiator '"+system.getX400Attribute( conn.getString("ibm-changeinitiatorsname"), "," , "racfid")+"'; Change type '"+conn.getString("changetype")+"'; Changed entry '"+conn.getString("targetdn")+"'",1);  
+ret.value = connectornumber;]]></Script>
+<Simple>systemoriginator</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>targetdn</Name>
+<Type>simple</Type>
+<Simple>targetdn</Simple>
+</AttributeMapItem>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+<Hook>
+<Name>after_getnext</Name>
+<Script><![CDATA[/*	Test racfid against list of excluded users loaded into 
+	Java HashSet object in Prolog. If matched do not process.
+*/
+racfid = system.getX400Attribute( conn.getString("targetdn"), "," , "racfid");
+
+cat("\n",2);
+cat( "read_zVMclog.AfterGetNext: Processing change number " 
+		+ conn.getString("changenumber") +", user " + racfid,2);
+
+initiator = system.getX400Attribute( conn.getString("ibm-changeinitiatorsname"), "," , "racfid");
+cat("Read_zVMclog.AfterGetNext: ibm-changeinitiatorsname is: "+initiator,2);
+
+if (initiator=="ciswork" || initiator=="CISWORK") {
+cat("Read_zVMclog.AfterGetNext: Change made by ciswork ignored",2);
+cat("Read_zVMclog.AfterGetNext: Processing Complete for change number " 
+		+ conn.getString("changenumber"),2);
+}
+if (initiator=="itdi" || initiator=="ITDI") {
+cat("Read_zVMclog.AfterGetNext: Change made by itdi ignored",2);
+cat("Read_zVMclog.AfterGetNext: Processing Complete for change number " 
+		+ conn.getString("changenumber"),2);
+} 
+]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>default_fail</Name>
+<Script><![CDATA[cat(error,1);
+cat("ITDI0001E : ERROR :  logic read changelog: Sync system aborting",1); 
+task.shutdown();]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>get_fail</Name>
+<Script/>
+<Enabled>false</Enabled>
+</Hook>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="logic_lookupInZVM">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Lookup</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="connectorFlags"/>
+<parameter name="debug">false</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes"/>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword"/>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapSearchBase"/>
+<parameter name="ldapSearchFilter"/>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl"/>
+<parameter name="ldapUseSSL">false</parameter>
+<parameter name="ldapUsername"/>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<AttributeMapItem>
+<Name>$dn</Name>
+<Type>simple</Type>
+<Simple>$dn</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>objectclass</Name>
+<Type>simple</Type>
+<Simple>objectclass</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfattributes</Name>
+<Type>simple</Type>
+<Simple>racfattributes</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfconnectowner</Name>
+<Type>simple</Type>
+<Simple>racfconnectowner</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfdefaultgroup</Name>
+<Type>simple</Type>
+<Simple>racfdefaultgroup</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfid</Name>
+<Type>simple</Type>
+<Simple>racfid</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racflogondays</Name>
+<Type>simple</Type>
+<Simple>racflogondays</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racflogontime</Name>
+<Type>simple</Type>
+<Simple>racflogontime</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfowner</Name>
+<Type>simple</Type>
+<Simple>racfowner</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfpassword</Name>
+<Type>advanced</Type>
+<Script><![CDATA[/* 	Decrypt the racfPasswordEnvelope and extract the password if 
+	we are processing a password change.
+*/
+
+if (racfPasswdSignal != null ) {
+    RACFCERT_ALIAS  = "RACFCERT_ALIAS"+work.getString("systemoriginator");
+    cat("lookupInZOS.InputMap.racfpassword: This is the RACFCERT_ALIAS  var name: "+RACFCERT_ALIAS,2);
+    cat("lookupInZOS.InputMap.racfpassword: This is the RACFCERT_ALIAS  value   : "+eval(RACFCERT_ALIAS),2);
+    cat("lookupInZOS.InputMap.racfpassword: This is the KEYSTORE        value   : "+KEYSTORE,2); 
+    cat("lookupInZOS.InputMap.racfpassword: This is the TDICERT_ALIAS   value   : "+TDICERT_ALIAS,2);
+    cat("lookupInZOS.InputMap.racfpassword: This is the RACFCERT_ALIAS2 value   : "+RACFCERT_ALIAS2,2);
+      	pwbytes = conn.getObject("racfpasswordenvelope");
+	    racfpwobj = system.getRacfPasswordObject ( 
+		pwbytes,
+		KEYSTORE, KEYSTORE_PASSWD, 
+		TDICERT_ALIAS, TDICERT_PASSWD,
+		KEYSTORE, KEYSTORE_PASSWD, eval(RACFCERT_ALIAS)
+	);
+	cat("lookupInZOS.InputMap.racfpassword: This is the racfpwobj:",2);
+	cat(racfpwobj.dumpContents(),2);
+	if ( racfpwobj.getExpired() == true ) {
+		work.setProperty("passwordExpired","true");
+	}
+    else {
+          work.setProperty("passwordExpired","false");
+    }
+	racfpw = racfpwobj.getPasswordString();
+	ret.value = racfpw;
+}
+else {
+work.setProperty("passwordExpired","true");
+}
+
+
+
+]]></Script>
+<Simple>racfpasswordenvelope</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfprogrammername</Name>
+<Type>simple</Type>
+<Simple>racfprogrammername</Simple>
+</AttributeMapItem>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+<LinkCriteriaItem>
+<Key>11405922039</Key>
+<Attribute>$dn</Attribute>
+<Operator>equals</Operator>
+<Value>$targetdn</Value>
+</LinkCriteriaItem>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+<Hook>
+<Name>after_lookup</Name>
+<Script><![CDATA[
+]]></Script>
+<Enabled>false</Enabled>
+</Hook>
+<Hook>
+<Name>before_execute</Name>
+<Script><![CDATA[params = thisConnector.getConnectorParam("jndiExtraProviderParams");
+//cat("lookupZVM.BeforeExecute: content of jndiExtraProviderParams is: "+params,2);
+position = params.indexOf("connectornumber:")+16;
+//cat("lookupZVM.BeforeExecute: position is : "+position,2);
+connectornumber = params.substring(position,position+2);
+//cat("lookupZVM.BeforeExecute: content of connectornumber is: "+connectornumber,2);
+current_connector=connectornumber;]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>before_lookup</Name>
+<Script><![CDATA[cat("lookupInZOS.BeforeExecute: lookupInZVM"+current_connector+" and system originator is: zVM" + work.getString("systemoriginator"),2);  
+if ( !work.getString("systemoriginator").equals(current_connector)) {
+     cat("lookupInZOS.BeforeExecute: lookupInZVM"+current_connector+" ignored",2);
+     system.ignoreEntry();
+} 
+/*	If processing changelog entry signaling enveloped password,
+	configure lookupInZOS connector to retrieve only the 
+	racfpasswordenvelope attribute.
+*/
+racfPasswdSignal = work.getString("racfPassword"); // set by RACF only if a password change
+if ( racfPasswdSignal != null && racfPasswdSignal.equals("*ComeAndGetIt*") ) {
+	thisConnector.setConnectorParam("ldapReturnAttributes", "racfpasswordenvelope");
+	cat ("lookupInZOS.BeforeExecute: Processing racfPassword change for user " + work.getString("targetDN"),2);
+} else {
+	// retrieve all attributes for a regular update
+	thisConnector.setConnectorParam("ldapReturnAttributes", "");
+	cat ("lookupInZOS.BeforeExecute: Processing new user or changes for " + work.getString("targetDN"),2);
+}]]></Script>
+<Enabled>true</Enabled>
+<DebugBreak>false</DebugBreak>
+</Hook>
+<Hook>
+<Name>default_fail</Name>
+<Script><![CDATA[cat("ITDI0001E : ERROR : logic lookup : Sync system aborting",1); 
+task.shutdown();]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>default_ok</Name>
+<Script/>
+<Enabled>false</Enabled>
+</Hook>
+<Hook>
+<Name>lookup_ok</Name>
+<Script><![CDATA[work.removeAttribute("targetdn");
+
+cat ( "lookupInZOS:LookupSuccessful: This is the work object retrieved from z/OS:",2);
+cat(work,2);
+]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="logic_updSdbmZVM">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Update</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="connectorFlags"/>
+<parameter name="debug">false</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword"/>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapSearchBase"/>
+<parameter name="ldapSearchFilter"/>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl"/>
+<parameter name="ldapUseSSL">false</parameter>
+<parameter name="ldapUsername"/>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+<AttributeMapItem>
+<Name>$dn</Name>
+<Type>simple</Type>
+<Modify>false</Modify>
+<Simple>$dn</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>objectclass</Name>
+<Type>simple</Type>
+<Modify>false</Modify>
+<Simple>objectclass</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfPassword</Name>
+<Type>simple</Type>
+<Simple>racfPassword</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfattributes</Name>
+<Type>simple</Type>
+<Add>true</Add>
+<Modify>true</Modify>
+<Simple>racfattributes</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfconnectowner</Name>
+<Type>simple</Type>
+<Simple>racfconnectowner</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfdefaultgroup</Name>
+<Type>simple</Type>
+<Modify>false</Modify>
+<Simple>racfdefaultgroup</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfid</Name>
+<Type>simple</Type>
+<Modify>false</Modify>
+<Simple>racfid</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racflogondays</Name>
+<Type>simple</Type>
+<Simple>racflogondays</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racflogontime</Name>
+<Type>simple</Type>
+<Simple>racflogontime</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfowner</Name>
+<Type>simple</Type>
+<Simple>racfowner</Simple>
+</AttributeMapItem>
+<AttributeMapItem>
+<Name>racfprogrammername</Name>
+<Type>simple</Type>
+<Simple>racfprogrammername</Simple>
+</AttributeMapItem>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+<LinkCriteriaItem>
+<Key>1254c361468</Key>
+<Attribute>$dn</Attribute>
+<Operator>equals</Operator>
+<Value>$$dn</Value>
+</LinkCriteriaItem>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+<Hook>
+<Name>after_add</Name>
+<Script>cat( "updZVMsdbm.AfterAdd: Added " + work.getString("$dn"),2);</Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>after_modify</Name>
+<Script>cat( "updZVMsdbm.AfterModify: Modified " + work.getString("$dn"),2);</Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>before_add</Name>
+<Script><![CDATA[cat( "updZVMsdbm.Before_Add: Adding entry " + conn.getString("$dn"),2);
+]]></Script>
+<Enabled>true</Enabled>
+<DebugBreak>false</DebugBreak>
+</Hook>
+<Hook>
+<Name>before_execute</Name>
+<Script><![CDATA[params = thisConnector.getConnectorParam("jndiExtraProviderParams");
+//cat("updlSdbZVM.BeforeExecute: content of jndiExtraProviderParams is: "+params,2);
+position = params.indexOf("connectornumber:")+16;
+//cat("updSdbZVM.BeforeExecute: position is : "+position,2);
+connectornumber = params.substring(position,position+2);
+//cat("updSdbZVM.BeforeExecute: content of connectornumber is: "+connectornumber,2);
+current_connector=connectornumber;
+racfattributes = work.getAttribute("racfattributes");
+cat("racf attrib BEFORE Update are: "+racfattributes,2);
+
+
+
+
+
+
+
+
+
+
+]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>before_lookup</Name>
+<Script><![CDATA[cat("updSdbmZVM.BeforeExecute: updSdbmZVM"+current_connector+" and system originator is: zVM" + work.getString("systemoriginator"),2);  
+if ( work.getString("systemoriginator").equals(current_connector)) {
+     cat("updSdbmZVM.BeforeExecute: updSdbmZVM"+current_connector+" ignored",2);
+     system.ignoreEntry();
+} ]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>before_modify</Name>
+<Script><![CDATA[conn.removeAttribute("racfid");
+conn.removeAttribute("objectclass");
+cat ("updZVMsdbm:Before_Modify: This is current:",2);
+cat(current,2);
+
+cat ("updZVMsdbm:Before_Modify: This is conn before computing changes:",2);
+cat(conn,2);
+]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>default_fail</Name>
+<Script><![CDATA[/*	
+	In update mode, a TDI connector searches the target system for an 
+	object that matches the link criteria. If TDI finds a match, it begins
+	the modify operation, which maps attributes and call the various modify 
+	hooks. When TDI does not find a match, it normally attempts to create a new object
+	and selects the add operation. However, when updating RACF-linked ldap servers, TDI
+	does not work as designed and throws an exception. The following is a detailed
+	explanation of the cause and the procedure implemented to get the proper 
+	behavior.
+
+	LDAP connector updZVMsdbm in this AssemblyLine attempts to update the z/VM 
+	SDBM LDAP directory, which is actually an interface to RACF. An LDAP search
+	directs z/VM to perform the RACF SEARCH command. When the LDAP search is a 
+	subtree or one level search and matches no objects, RACF returns an error.
+	An example as executed from a distributed platform command line is:
+		ldapsearch -h vmsys -D "racfid=itdi,profiletype=user,cn=racfvm" -w passw0rd
+			-b "profiletype=user,cn=racfvm" racfid=newuser
+	The equivalent RACF command is:
+		SEARCH CLASS(USER) FILTER(NEWUSER)
+	Assuming newuser does not exist in the VM RACF, the response to both commands is:
+		ICH31005I NO ENTRIES MEET SEARCH CRITERIA
+	This raises a command error in 
+	RACF and creates an unknown error when executed through LDAP, which generates an 
+	exception in the TDI. TDI processes 
+	that exception here in the "Update Error" hook.
+
+	The link criteria for this connector is "$dn = $($dn), which attempts to match 
+	the $dn in the work entry against the $dn of the target LDAP directory. This is 
+	a base level search. On a command line it takes this form:
+		ldapsearch -h vmsys -D racfid=itdi,profiletype=user,cn=racfvm -w passw0rd
+			-b "racfid=newuser,profiletype=user,cn=racfvm" -s base objectclass=*
+	The equivalent RACF command is:
+		LISTUSER NEWUSER
+	RACF returns this error:
+		ICH30001I UNABLE TO LOCATE USER    ENTRY NEWUSER 
+	In this case LDAP returns a different error code, probably because the LDAP calls
+	an underlying routine. The error contains this string:
+		Routine 'racf_profileExtractInterface' failed, rc=80 (doListCmdAndSendResults)
+	In an update mode operation, TDI sends the LDAP search command to RACF when the lookup
+	calls the LDAPConnector.findEntry() method, which throws an exception.
+
+	The code below tests if the exception contains either of the strings that signal a 
+	lookup with no results. If found, it calls the LDAPConnector.add() method, which directs
+	execution to On Add hooks. Other exceptions lead to the system.skipEntry() method, which
+	ensures TDI makes no changes to RACF for this object.
+*/
+cat("Changenumber '"+work.getString("changenumber")+"' from system '"+work.getString("systemoriginator")+"' to system '"+current_connector+"' synchronization Failed",1);
+// cat( "updZVMsdbm.UpdateError: ",2);
+gooderror = "ICH31005I NO ENTRIES MEET SEARCH CRITERIA";
+gooderror2 = "racf_profileExtractInterface";
+if ( error.getString("exception").contains(gooderror) ||
+		error.getString("exception").contains(gooderror2) ) {
+	thisConnector.getStats().err--;
+	error.removeAllAttributes();	
+	error.setAttribute("status", "ok");
+	thisConnector.add(work);
+} else {
+//	cat ("updZVMsdbm.UpdateError: This is the error:",2);
+//	cat(error,2);
+    cat("ITDI0001E : ERROR : logic update sdbm : Sync system aborting",1); 
+    task.shutdown();
+}]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>modify_nochange</Name>
+<Script>cat("updZVMsdbm.On_No_Changes: No updates to " + work.getString("$dn") );</Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>update_fail</Name>
+<Script><![CDATA[
+]]></Script>
+<Enabled>false</Enabled>
+</Hook>
+<Hook>
+<Name>update_ok</Name>
+<Script>cat("Changenumber '"+work.getString("changenumber")+"' from system '"+work.getString("systemoriginator")+"' to system '"+current_connector+"' synchronized successfully",1);</Script>
+<Enabled>true</Enabled>
+</Hook>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="autoreconnect">true</parameter>
+<parameter name="initreconnect">true</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="logic_delSdbmZVM">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Delete</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="connectorFlags"/>
+<parameter name="debug">false</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword"/>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapSearchBase"/>
+<parameter name="ldapSearchFilter"/>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl"/>
+<parameter name="ldapUseSSL">false</parameter>
+<parameter name="ldapUsername"/>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<AttributeMapItem>
+<Name>$dn</Name>
+<Type>simple</Type>
+<Simple>$dn</Simple>
+</AttributeMapItem>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+<LinkCriteriaItem>
+<Key>12569711fe3</Key>
+<Attribute>$dn</Attribute>
+<Operator>equals</Operator>
+<Value>$targetdn</Value>
+</LinkCriteriaItem>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+<Hook>
+<Name>before_execute</Name>
+<Script><![CDATA[params = thisConnector.getConnectorParam("jndiExtraProviderParams");
+//cat("delSdbZVM.BeforeExecute: content of jndiExtraProviderParams is: "+params,2);
+position = params.indexOf("connectornumber:")+16;
+//cat("delSdbZVM.BeforeExecute: position is : "+position,2);
+connectornumber = params.substring(position,position+2);
+//cat("delSdbZVM.BeforeExecute: content of connectornumber is: "+connectornumber,2);
+current_connector=connectornumber;]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>before_initialize</Name>
+<Script/>
+<Enabled>false</Enabled>
+</Hook>
+<Hook>
+<Name>before_lookup</Name>
+<Script><![CDATA[cat("delSdbmZVM.BeforeExecute: delSdbmZVM"+current_connector+" and system originator is: zVM" + work.getString("systemoriginator"),2);  
+if ( work.getString("systemoriginator").equals(current_connector)) {
+     cat("delSdbmZVM.BeforeExecute: delSdbmZVM"+current_connector+" ignored",2);
+     system.ignoreEntry();
+} ]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>default_fail</Name>
+<Script><![CDATA[cat("Changenumber '"+work.getString("changenumber")+"' from system '"+work.getString("systemoriginator")+"' to system '"+current_connector+"' synchronization Failed",1);
+cat("ITDI0001E : ERROR : logic delSdbmZVM : Sync system aborting",1); 
+task.shutdown();]]></Script>
+<Enabled>true</Enabled>
+</Hook>
+<Hook>
+<Name>delete_fail</Name>
+<Script/>
+<Enabled>false</Enabled>
+</Hook>
+<Hook>
+<Name>delete_ok</Name>
+<Script>cat("Changenumber '"+work.getString("changenumber")+"' from system '"+work.getString("systemoriginator")+"' to system '"+current_connector+"' synchronized successfully",1);</Script>
+<Enabled>true</Enabled>
+</Hook>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance>
+<Enabled>false</Enabled>
+<ExhaustedPoolBehavior>Wait</ExhaustedPoolBehavior>
+</PoolInstance>
+</Connector>
+<Connector name="zconfig_zVM3Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM3</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:3</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg3:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">261670</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM3LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:3</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg3:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM4Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM4</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:4</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg2:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">259973</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM4LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:4</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg2:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM5Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM5</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:5</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxw2:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">38776</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM5LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:5</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxw2:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM6Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM6</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:6</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxw3:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">42687</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changes</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>racfPassword</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM6LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:6</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxw3:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM7Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM7</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:7</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxw4:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">36232</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changes</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>racfPassword</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM7LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Disabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:7</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">$itdi02$</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxw4:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM8Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM8</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:8</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">$blue901</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg1:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">135986</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changes</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>racfPassword</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM8LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:8</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">$blue901</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg1:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM9Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM9</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:9</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">91feet92</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg4:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">142814</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changes</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>racfPassword</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM9LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:9</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">91feet92</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg4:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM10Clog">
+<InheritFrom>system:/Connectors/ibmdi.zOSChangelog</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="debug">false</parameter>
+<parameter name="iteratorStateKey">changeNumberVM10</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:10</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapPassword">91feet92</parameter>
+<parameter name="ldapSearchBase">cn=changelog</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg5:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="nsChangenumber">142462</parameter>
+<parameter name="nsSleepInterval">1</parameter>
+<parameter name="nsTimeout">1</parameter>
+<parameter name="stateKeyPersistence">End of cycle</parameter>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<InheritFrom>[no inheritance]</InheritFrom>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+<SchemaItem>
+<Name>$dn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changenumber</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changes</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetime</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>changetype</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>ibm-changeinitiatorsname</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>objectclass</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>racfPassword</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+<SchemaItem>
+<Name>targetdn</Name>
+<Syntax>java.lang.String</Syntax>
+</SchemaItem>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+<Connector name="zconfig_zVM10LDAP">
+<InheritFrom>system:/Connectors/ibmdi.LDAP</InheritFrom>
+<ConnectorMode>Iterator</ConnectorMode>
+<ConnectorState>Enabled</ConnectorState>
+<Configuration>
+<UserComment/>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="automapADPassword">false</parameter>
+<parameter name="debug">false</parameter>
+<parameter name="jndiExtraProviderParams">connectornumber:10</parameter>
+<parameter name="ldapAddAttr">false</parameter>
+<parameter name="ldapAuthenticationMethod">Simple</parameter>
+<parameter name="ldapBinaryAttributes">racfPasswordEnvelope</parameter>
+<parameter name="ldapPageSize">0</parameter>
+<parameter name="ldapPassword">91feet92</parameter>
+<parameter name="ldapReferrals">follow</parameter>
+<parameter name="ldapReturnAttributes"/>
+<parameter name="ldapSearchBase">profiletype=user,CN=RACFVM</parameter>
+<parameter name="ldapSearchFilter">objectclass=*</parameter>
+<parameter name="ldapSearchScope">subtree</parameter>
+<parameter name="ldapSizeLimit">0</parameter>
+<parameter name="ldapTimeLimit">0</parameter>
+<parameter name="ldapUrl">ldaps://vmlxg5:636</parameter>
+<parameter name="ldapUseSSL">true</parameter>
+<parameter name="ldapUsername">racfid=itdi,profiletype=user,cn=RACFVM</parameter>
+<parameter name="ldapVLVPageSize">0</parameter>
+<parameter name="simulateRename">false</parameter>
+<parameter name="userComment"/>
+</Configuration>
+<Parser>
+<InheritFrom>[parent]</InheritFrom>
+</Parser>
+<AttributeMap name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<AttributeMap name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</AttributeMap>
+<DeltaSettings>
+<WhenToCommit>After every database operation</WhenToCommit>
+<Driver>CloudScape</Driver>
+</DeltaSettings>
+<Schema name="Input">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<Schema name="Output">
+<InheritFrom>[parent]</InheritFrom>
+</Schema>
+<LinkCriteria>
+<InheritFrom>[parent]</InheritFrom>
+</LinkCriteria>
+<Hooks>
+<InheritFrom>[parent]</InheritFrom>
+</Hooks>
+<CheckpointConfig/>
+<SandboxConfig/>
+<Reconnect>
+<InheritFrom>[parent]</InheritFrom>
+<parameter name="initreconnect">false</parameter>
+<parameter name="numberOfRetries">1</parameter>
+<parameter name="retryDelay">10</parameter>
+</Reconnect>
+<Operations/>
+<PoolDefinition>
+<InheritFrom>[parent]</InheritFrom>
+<Enabled>false</Enabled>
+<MinPoolSize>0</MinPoolSize>
+<PurgeInterval>0</PurgeInterval>
+<InitializeAttempts>1</InitializeAttempts>
+</PoolDefinition>
+<PoolInstance/>
+</Connector>
+</Folder>
+<Folder name="Parsers"/>
+<Folder name="EventHandlers"/>
+<Folder name="Scripts">
+<Script name="cat">
+<parameter name="autoInclude">true</parameter>
+<parameter name="includeFiles"/>
+<parameter name="script"><![CDATA[/*
+	Function cat prints strings or dump objects to the console and/or logs
+
+	LOGDEPTH must be defined globally. Do this in each AssemblyLine Prolog or below.
+	It can take any non-negative integer. Zero suppresses all logging. One is the
+	ordinary default. Higher values	print objects whose depth equals that value or lower. 
+
+	In the function cat, the default value of the optional argument 'depth' is one (1). 
+	Depth can be any positive integer. Higher values suppress printing of the first argument
+	unless LOGDEPTH matches or exceeds 'depth'. 
+
+*/
+
+
+//LOGDEPTH = 1;
+function cat ( arg, /* optional argument */ depth ) {
+	if (!depth) depth = 1;
+	if ( LOGDEPTH >= depth ) {
+		try {
+			if ( typeof arg == "string" || arg.getClass() == "class java.lang.String" ) {
+				task.logmsg( LOGLEVEL, arg );
+			} else {
+				task.dump( arg );
+			}
+		} catch (e) {
+			task.dump( arg );  // dump() calls dumpEntry() for TDI entry objects
+		}
+	}
+}
+]]></parameter>
+</Script>
+<Script name="global_Prolog">
+<parameter name="autoInclude">true</parameter>
+<parameter name="includeFiles"/>
+<parameter name="script"><![CDATA[/* 
+	Global settings for all AssemblyLines
+	Customize this prolog to set local defaults and configure diagnostic logging
+*/
+
+//-----Define some constants
+
+// TDI Solutions Folder
+SOLUTIONDIR = system.getJavaProperty("user.dir").replaceAll("\\\\","/");
+
+// Specific path to this config file
+SOLUTIONPATH = "/opt/IBM/TDI/ssc_config/";
+
+// Java key store and parameters used for RACF password envelope decryption
+KEYSTORE = SOLUTIONPATH + "itdikeystore.jks";
+KEYSTORE_PASSWD = "ssctdi1";
+TDICERT_PASSWD = "ssctdi1";
+TDICERT_ALIAS = "itdi";
+CISWORK_ALIAS = "ciswork";
+RACFCERT_ALIAS1  = "racf-vmlx1";
+RACFCERT_ALIAS2  = "racf-vmlxw5";
+RACFCERT_ALIAS3  = "racf-vmlxg3";
+RACFCERT_ALIAS4  = "racf-vmlxg2";
+RACFCERT_ALIAS5  = "racf-vmlxw2";
+RACFCERT_ALIAS6  = "racf-vmlxw3";
+RACFCERT_ALIAS7  = "racf-vmlxw4";
+RACFCERT_ALIAS8  = "racf-vmlxg1";
+RACFCERT_ALIAS9  = "racf-vmlxg4";
+RACFCERT_ALIAS10 = "racf-vmlxg5";
+
+
+// Some values specific to target system
+ZVMSDBM = "cn=RACFVM";
+DEFAULTOWNER = "RACFID=ITDI,PROFILETYPE=USER,CN=RACFVM";
+
+//-----|
+
+
+//-----Configure flexible logging
+
+// Uncomment only one of these; TDI default is INFO
+//LOGLEVEL = "DEBUG";
+//LOGLEVEL = "INFO";
+//LOGLEVEL = "WARN";  
+LOGLEVEL = "WARN";
+
+// See comments in cat script (script library) for details on LOGDEPTH
+LOGDEPTH = 1;
+
+//-----|
+
+
+//-----|]]></parameter>
+</Script>
+</Folder>
+<JavaLibraries/>
+<JavaProperties/>
+<Folder name="Includes"/>
+<Folder name="Config">
+<LogConfig name="Logging"/>
+<InstanceProperties name="AutoStart">
+<AutoStart/>
+</InstanceProperties>
+<TombstonesConfig name="Tombstones">
+<parameter name="AssemblyLines">false</parameter>
+<parameter name="Configuration">false</parameter>
+<parameter name="EventHandlers">false</parameter>
+</TombstonesConfig>
+<SolutionInterface name="SolutionInterface"/>
+</Folder>
+<Folder name="Functions"/>
+<Folder name="AttributeMaps"/>
+<Properties name="Properties">
+<Stores>
+<PropertyStore name="Solution-Properties">
+<Parser/>
+<RawConnector>
+<InheritFrom>system:/Connectors/ibmdi.Properties</InheritFrom>
+<parameter name="collectionType">Solution-Properties</parameter>
+</RawConnector>
+<Key>key</Key>
+<Value>value</Value>
+<ReadOnly>false</ReadOnly>
+<InitialLoad>true</InitialLoad>
+<CacheTimeout>0</CacheTimeout>
+</PropertyStore>
+<PropertyStore name="Global-Properties">
+<Parser/>
+<RawConnector>
+<InheritFrom>system:/Connectors/ibmdi.Properties</InheritFrom>
+<parameter name="collectionType">Global-Properties</parameter>
+</RawConnector>
+<Key>key</Key>
+<Value>value</Value>
+<ReadOnly>false</ReadOnly>
+<InitialLoad>true</InitialLoad>
+<CacheTimeout>0</CacheTimeout>
+</PropertyStore>
+<PropertyStore name="Java-Properties">
+<Parser/>
+<RawConnector>
+<InheritFrom>system:/Connectors/ibmdi.Properties</InheritFrom>
+<parameter name="collectionType">Java-Properties</parameter>
+</RawConnector>
+<Key>key</Key>
+<Value>value</Value>
+<ReadOnly>false</ReadOnly>
+<InitialLoad>true</InitialLoad>
+<CacheTimeout>0</CacheTimeout>
+</PropertyStore>
+<PropertyStore name="System-Properties">
+<Parser/>
+<RawConnector>
+<InheritFrom>system:/Connectors/ibmdi.Properties</InheritFrom>
+<parameter name="collectionType">System-Properties</parameter>
+</RawConnector>
+<Key>key</Key>
+<Value>value</Value>
+<ReadOnly>false</ReadOnly>
+<InitialLoad>true</InitialLoad>
+<CacheTimeout>0</CacheTimeout>
+</PropertyStore>
+</Stores>
+</Properties>
+</MetamergeConfig>
